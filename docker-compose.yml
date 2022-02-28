@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  server:
+    tty: true
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./server:/usr/src/
+    ports:
+      - "8004:8000"
+    depends_on:
+      - db
+
+# Setting.pyの"HOST"に入力するサービス名
+  db:
+    image: mysql:5.7
+    expose:
+      - 5432
+    ports:
+      - "13306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: meetup-db
+      MYSQL_USER: meetup
+      MYSQL_PASSWORD: meetup-pass
+
+  client:
+    stdin_open: true
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    volumes:
+      - ./client:/usr/src/
+      - /usr/src/node_modules
+    ports:
+      - "3080:8080"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - server
